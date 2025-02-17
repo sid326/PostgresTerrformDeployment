@@ -97,7 +97,6 @@ resource "azurerm_public_ip" "pg_vm_ip" {
   resource_group_name = azurerm_resource_group.pg.name
   location            = azurerm_resource_group.pg.location
   allocation_method   = "Static"
-  sku                 = "Standard"
 }
 
 # Network Interfaces for VMs
@@ -137,7 +136,7 @@ resource "azurerm_linux_virtual_machine" "pg_vm" {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "22_04-lts"
-    version   = "latest"
+    version   = "22.04.202210110"  # Use a specific available version
   }
 
   # Use cloud-init to install PostgreSQL
@@ -150,7 +149,6 @@ resource "azurerm_public_ip" "haproxy_ip" {
   resource_group_name = azurerm_resource_group.pg.name
   location            = azurerm_resource_group.pg.location
   allocation_method   = "Static"
-  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "haproxy" {
@@ -171,10 +169,22 @@ resource "azurerm_lb_backend_address_pool" "pg_pool" {
   name            = "BackendPool"
 }
 
-# Associate VMs with LB Backend Pool
+# Associate VMs with LB
 resource "azurerm_network_interface_backend_address_pool_association" "pg_lb_assoc" {
   count                   = 3
   network_interface_id    = azurerm_network_interface.pg_nic[count.index].id
   ip_configuration_name   = "internal"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.pg_pool.id
+  backend_address_pool_id = [azurerm_lb_backend_address_pool.pg_pool.id]
 }
+
+# Load Balancer Rule for PostgreSQL
+resource "azurerm_lb_rule" "pg_lb_rule" {
+  loadbalancer_id                = azurerm_lb.haproxy.id
+  name                           = "PostgreSQLLoadBalancerRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 5432
+  backend_port                   = 5432
+  frontend_ip_configuration_name = "PublicIP"
+  backend_address_pool_ids      = [azurerm_lb_backend_address_pool.pg_pool.id]
+}
+
