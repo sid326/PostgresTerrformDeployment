@@ -32,11 +32,6 @@ variable "admin_password" {
   default = "YourStrongPassword123!"
 }
 
-variable "subscription_id" {}
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
-
 # Create Resource Group
 resource "azurerm_resource_group" "pg" {
   name     = "${var.prefix}-rg"

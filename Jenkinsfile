@@ -22,8 +22,6 @@ pipeline {
                                               -u $AZURE_CREDENTIALS_CLIENT_ID \
                                               -p $AZURE_CREDENTIALS_CLIENT_SECRET \
                                               --tenant $AZURE_CREDENTIALS_TENANT_ID
-
-                                           az account set --subscription $AZURE_CREDENTIALS_SUBSCRIPTION_ID
                                         '''
                                     }
                                 }
@@ -33,7 +31,9 @@ pipeline {
         stage('Terraform Init') {
                     steps {
                         dir("${TF_DIR}") {
-                            sh 'terraform init'
+                        sh '''
+                            terraform init
+                        '''
                         }
                     }
                 }
