@@ -17,6 +17,7 @@ etcd:
   hosts: 10.0.0.1:2379,10.0.0.2:2379,10.0.0.3:2379
 
 bootstrap:
+
   dcs:
     ttl: 30
     loop_wait: 10

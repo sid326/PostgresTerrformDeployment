@@ -2,16 +2,17 @@ pipeline {
     agent any
 
     environment {
-        AZURE_CLIENT_ID = credentials('AZURE_CLIENT_ID')
-        AZURE_CLIENT_SECRET = credentials('AZURE_CLIENT_SECRET')
-        AZURE_TENANT_ID = credentials('AZURE_TENANT_ID')
-        AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')
+//         AZURE_CLIENT_ID = credentials('AZURE_CLIENT_ID')
+//         AZURE_CLIENT_SECRET = credentials('AZURE_CLIENT_SECRET')
+//         AZURE_TENANT_ID = credentials('AZURE_TENANT_ID')
+//         AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')
+        AZURE_CREDENTIALS = credentials('azure-service-principal')
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/YOUR_USERNAME/YOUR_REPO.git'
+                git branch: 'main', url: 'https://github.com/sid326/PostgresTerrformDeployment.git'
             }
         }
 
@@ -20,6 +21,21 @@ pipeline {
                 sh 'terraform init'
             }
         }
+
+        stage('Azure Login') {
+                            steps {
+                                script {
+                                    withCredentials([azureServicePrincipal('azure-service-principal')]) {
+                                        sh '''
+                                            az login --service-principal \
+                                                -u $AZURE_CREDENTIALS_CLIENT_ID \
+                                                -p $AZURE_CREDENTIALS_CLIENT_SECRET \
+                                                --tenant $AZURE_CREDENTIALS_TENANT_ID
+                                        '''
+                                    }
+                                }
+                            }
+                        }
 
         stage('Plan Terraform Deployment') {
             steps {
