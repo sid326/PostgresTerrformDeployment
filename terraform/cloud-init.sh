@@ -4,6 +4,9 @@ sudo apt install -y postgresql postgresql-contrib etcd python3-pip haproxy
 
 pip install patroni
 
+# Fetch private IPs from file
+PRIVATE_IPS=($(cat /etc/private_ips.txt))
+
 cat <<EOF | sudo tee /etc/patroni.yml
 scope: postgresql-cluster
 namespace: /db/
@@ -14,10 +17,9 @@ restapi:
   connect_address: $(hostname -I | awk '{print $1}'):8008
 
 etcd:
-  hosts: 10.0.0.1:2379,10.0.0.2:2379,10.0.0.3:2379
+  hosts: ${PRIVATE_IPS[0]}:2379,${PRIVATE_IPS[1]}:2379,${PRIVATE_IPS[2]}:2379
 
 bootstrap:
-
   dcs:
     ttl: 30
     loop_wait: 10
@@ -63,9 +65,9 @@ frontend postgresql
 backend postgresql_servers
     mode tcp
     balance roundrobin
-    server pg-node-1 10.0.0.1:5432 check
-    server pg-node-2 10.0.0.2:5432 check
-    server pg-node-3 10.0.0.3:5432 check
+    server pg-node-1 ${PRIVATE_IPS[0]}:5432 check
+    server pg-node-2 ${PRIVATE_IPS[1]}:5432 check
+    server pg-node-3 ${PRIVATE_IPS[2]}:5432 check
 EOF
 
 sudo systemctl restart haproxy

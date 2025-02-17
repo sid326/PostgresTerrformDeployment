@@ -189,4 +189,7 @@ resource "azurerm_lb_rule" "pg_lb_rule" {
   frontend_ip_configuration_name = "PublicIP"
   backend_address_pool_ids      = [azurerm_lb_backend_address_pool.pg_pool.id]
 }
-
+resource "local_file" "private_ips" {
+  content  = join("\n", azurerm_network_interface.pg_nic[*].private_ip_address)
+  filename = "${path.module}/private_ips.txt"
+}
