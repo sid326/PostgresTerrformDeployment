@@ -21,7 +21,7 @@ variable "location" {
 }
 
 variable "vm_size" {
-  default = "Standard_D2s_v3"
+  default = "Standard_DS1_v2"
 }
 
 variable "admin_user" {
@@ -135,8 +135,8 @@ resource "azurerm_linux_virtual_machine" "pg_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "22_04-lts"
-    version   = "22.04.202210110"  # Use a specific available version
+    sku       = "18.04-LTS"
+    version   = "latest"
   }
 
   # Use cloud-init to install PostgreSQL
