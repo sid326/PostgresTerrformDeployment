@@ -1,3 +1,3 @@
 # PostgresTerrformDeployment
 PostgresTerrformDeployment
-Depploy Postgress DB
+Deploy Postgress DB
