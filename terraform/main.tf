@@ -150,6 +150,7 @@ resource "azurerm_public_ip" "haproxy_ip" {
   resource_group_name = azurerm_resource_group.pg.name
   location            = azurerm_resource_group.pg.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_lb" "haproxy" {
