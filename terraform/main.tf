@@ -174,7 +174,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "pg_lb_ass
   count                   = 3
   network_interface_id    = azurerm_network_interface.pg_nic[count.index].id
   ip_configuration_name   = "internal"
-  backend_address_pool_id = [azurerm_lb_backend_address_pool.pg_pool.id]
+  backend_address_pool_id = azurerm_lb_backend_address_pool.pg_pool.id
 }
 
 # Load Balancer Rule for PostgreSQL
