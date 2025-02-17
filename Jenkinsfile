@@ -18,10 +18,12 @@ pipeline {
                                 script {
                                     withCredentials([azureServicePrincipal('azure-service-principal')]) {
                                         sh '''
-                                            az login --service-principal \
-                                                -u $AZURE_CREDENTIALS_CLIENT_ID \
-                                                -p $AZURE_CREDENTIALS_CLIENT_SECRET \
-                                                --tenant $AZURE_CREDENTIALS_TENANT_ID
+                                           az login --service-principal \
+                                              -u $AZURE_CREDENTIALS_CLIENT_ID \
+                                              -p $AZURE_CREDENTIALS_CLIENT_SECRET \
+                                              --tenant $AZURE_CREDENTIALS_TENANT_ID
+
+                                           az account set --subscription $AZURE_CREDENTIALS_SUBSCRIPTION_ID
                                         '''
                                     }
                                 }
