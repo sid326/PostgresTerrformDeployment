@@ -4,7 +4,7 @@ pipeline {
     environment {
         AZURE_CREDENTIALS = credentials('azure-service-principal')
         TF_DIR            = 'terraform'
-        PATH_VARIABLE     = '/var/lib/jenkins/workspace/Postgres Deploy/terraform'
+        PATH_VARIABLE     = '/home/jenkins'
     }
 
     stages {

@@ -17,7 +17,7 @@ variable "prefix" {
 }
 
 variable "PATH_VARIABLE" {
-  default = "/var/lib/jenkins/workspace/Postgres Deploy/terraform"
+  default = "/home/jenkins"
 }
 
 variable "location" {
