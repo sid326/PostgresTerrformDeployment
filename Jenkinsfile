@@ -50,7 +50,7 @@ pipeline {
         stage('Apply Terraform Configuration') {
             steps {
                 dir("${TF_DIR}") {
-                    sh 'terraform apply -auto-approve tfplan -var "PATH_VARIABLE=${PATH_VARIABLE}'
+                    sh 'terraform apply -auto-approve tfplan -var "PATH_VARIABLE=${PATH_VARIABLE}"'
                 }
             }
         }
