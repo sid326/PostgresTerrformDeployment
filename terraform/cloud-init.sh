@@ -1,11 +1,12 @@
 #!/bin/bash
+PATH_VARIABLE=${PATH_VARIABLE}
 sudo apt update -y
 sudo apt install -y postgresql postgresql-contrib etcd python3-pip haproxy
 
 pip install patroni
 
 # Fetch private IPs from file
-PRIVATE_IPS=($(cat /etc/private_ips.txt))
+PRIVATE_IPS=($(cat ${PATH_VARIABLE}/private_ips.txt))
 
 cat <<EOF | sudo tee /etc/patroni.yml
 scope: postgresql-cluster

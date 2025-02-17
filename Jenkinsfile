@@ -4,6 +4,7 @@ pipeline {
     environment {
         AZURE_CREDENTIALS = credentials('azure-service-principal')
         TF_DIR            = 'terraform'
+        PATH_VARIABLE     = '/var/lib/jenkins/workspace/Postgres Deploy/terraform'
     }
 
     stages {
@@ -41,7 +42,7 @@ pipeline {
         stage('Plan Terraform Deployment') {
             steps {
                 dir("${TF_DIR}") {
-                    sh 'terraform plan -out=tfplan'
+                    sh 'terraform plan -out=tfplan -var "PATH_VARIABLE=${PATH_VARIABLE}"'
                   }
             }
         }
@@ -49,7 +50,7 @@ pipeline {
         stage('Apply Terraform Configuration') {
             steps {
                 dir("${TF_DIR}") {
-                    sh 'terraform apply -auto-approve tfplan'
+                    sh 'terraform apply -auto-approve tfplan -var "PATH_VARIABLE=${PATH_VARIABLE}'
                 }
             }
         }
