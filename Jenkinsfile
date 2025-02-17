@@ -3,18 +3,13 @@ pipeline {
 
     environment {
         AZURE_CREDENTIALS = credentials('azure-service-principal')
+        TF_DIR            = 'terraform'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                  git branch: 'main', credentialsId: 'git-ssh-key', url: 'https://github.com/sid326/PostgresTerrformDeployment.git'
-            }
-        }
-
-        stage('Initialize Terraform') {
-            steps {
-                sh 'terraform init'
             }
         }
 
@@ -33,15 +28,27 @@ pipeline {
                             }
                         }
 
+        stage('Terraform Init') {
+                    steps {
+                        dir("${TF_DIR}") {
+                            sh 'terraform init'
+                        }
+                    }
+                }
+
         stage('Plan Terraform Deployment') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                dir("${TF_DIR}") {
+                    sh 'terraform plan -out=tfplan'
+                  }
             }
         }
 
         stage('Apply Terraform Configuration') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                dir("${TF_DIR}") {
+                    sh 'terraform apply -auto-approve tfplan'
+                }
             }
         }
     }
