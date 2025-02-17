@@ -169,21 +169,10 @@ resource "azurerm_lb_backend_address_pool" "pg_pool" {
   name            = "BackendPool"
 }
 
-# Associate VMs with LB
+# Associate VMs with LB Backend Pool
 resource "azurerm_network_interface_backend_address_pool_association" "pg_lb_assoc" {
   count                   = 3
   network_interface_id    = azurerm_network_interface.pg_nic[count.index].id
   ip_configuration_name   = "internal"
   backend_address_pool_id = azurerm_lb_backend_address_pool.pg_pool.id
-}
-
-# Load Balancer Rule for PostgreSQL
-resource "azurerm_lb_rule" "pg_lb_rule" {
-  loadbalancer_id                = azurerm_lb.haproxy.id
-  name                           = "PostgreSQLLoadBalancerRule"
-  protocol                       = "Tcp"
-  frontend_port                  = 5432
-  backend_port                   = 5432
-  frontend_ip_configuration_name = "PublicIP"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.pg_pool.id
 }
