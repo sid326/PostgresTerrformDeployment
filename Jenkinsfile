@@ -56,9 +56,9 @@ pipeline {
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: 'terraform.tfstate', fingerprint: true
-        }
+//         always {
+//             archiveArtifacts artifacts: 'terraform.tfstate', fingerprint: true
+//         }
         success {
             echo "Terraform Deployment Successful!"
         }
