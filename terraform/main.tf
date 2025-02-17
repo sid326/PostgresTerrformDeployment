@@ -1,5 +1,15 @@
-provider "azurerm" {
-  features {}
+# provider "azurerm" {
+#   features {}
+# }
+
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+  required_version = ">= 1.0"
 }
 
 variable "prefix" {
@@ -22,11 +32,18 @@ variable "admin_password" {
   default = "YourStrongPassword123!"
 }
 
+variable "subscription_id" {}
+variable "client_id" {}
+variable "client_secret" {}
+variable "tenant_id" {}
+
+# Create Resource Group
 resource "azurerm_resource_group" "pg" {
   name     = "${var.prefix}-rg"
   location = var.location
 }
 
+# Virtual Network & Subnet
 resource "azurerm_virtual_network" "pg_vnet" {
   name                = "${var.prefix}-vnet"
   location            = azurerm_resource_group.pg.location
@@ -41,6 +58,7 @@ resource "azurerm_subnet" "pg_subnet" {
   address_prefixes     = ["10.0.0.0/24"]
 }
 
+# Network Security Group (NSG)
 resource "azurerm_network_security_group" "pg_nsg" {
   name                = "${var.prefix}-nsg"
   resource_group_name = azurerm_resource_group.pg.name
@@ -59,20 +77,8 @@ resource "azurerm_network_security_group" "pg_nsg" {
   }
 
   security_rule {
-    name                       = "AllowEtcd"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "2379-2380"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
     name                       = "AllowSSH"
-    priority                   = 1003
+    priority                   = 1002
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -83,6 +89,22 @@ resource "azurerm_network_security_group" "pg_nsg" {
   }
 }
 
+# Attach NSG to Subnet
+resource "azurerm_subnet_network_security_group_association" "pg_nsg_assoc" {
+  subnet_id                 = azurerm_subnet.pg_subnet.id
+  network_security_group_id = azurerm_network_security_group.pg_nsg.id
+}
+
+# Public IPs for VMs
+resource "azurerm_public_ip" "pg_vm_ip" {
+  count               = 3
+  name                = "${var.prefix}-vm-ip-${count.index}"
+  resource_group_name = azurerm_resource_group.pg.name
+  location            = azurerm_resource_group.pg.location
+  allocation_method   = "Static"
+}
+
+# Network Interfaces for VMs
 resource "azurerm_network_interface" "pg_nic" {
   count               = 3
   name                = "${var.prefix}-nic-${count.index}"
@@ -93,9 +115,11 @@ resource "azurerm_network_interface" "pg_nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.pg_subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pg_vm_ip[count.index].id
   }
 }
 
+# PostgreSQL Virtual Machines
 resource "azurerm_linux_virtual_machine" "pg_vm" {
   count               = 3
   name                = "${var.prefix}-vm-${count.index}"
@@ -120,9 +144,11 @@ resource "azurerm_linux_virtual_machine" "pg_vm" {
     version   = "latest"
   }
 
+  # Use cloud-init to install PostgreSQL
   custom_data = base64encode(file("cloud-init.sh"))
 }
 
+# Load Balancer - HAProxy for PostgreSQL
 resource "azurerm_public_ip" "haproxy_ip" {
   name                = "${var.prefix}-haproxy-ip"
   resource_group_name = azurerm_resource_group.pg.name
@@ -135,8 +161,34 @@ resource "azurerm_lb" "haproxy" {
   resource_group_name = azurerm_resource_group.pg.name
   location            = azurerm_resource_group.pg.location
   sku                 = "Standard"
+
   frontend_ip_configuration {
     name                 = "PublicIP"
     public_ip_address_id = azurerm_public_ip.haproxy_ip.id
   }
+}
+
+# Backend Pool for Load Balancer
+resource "azurerm_lb_backend_address_pool" "pg_pool" {
+  loadbalancer_id = azurerm_lb.haproxy.id
+  name            = "BackendPool"
+}
+
+# Associate VMs with LB
+resource "azurerm_network_interface_backend_address_pool_association" "pg_lb_assoc" {
+  count                   = 3
+  network_interface_id    = azurerm_network_interface.pg_nic[count.index].id
+  ip_configuration_name   = "internal"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.pg_pool.id
+}
+
+# Load Balancer Rule for PostgreSQL
+resource "azurerm_lb_rule" "pg_lb_rule" {
+  loadbalancer_id                = azurerm_lb.haproxy.id
+  name                           = "PostgreSQLLoadBalancerRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 5432
+  backend_port                   = 5432
+  frontend_ip_configuration_name = "PublicIP"
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.pg_pool.id
 }
