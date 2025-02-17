@@ -2,10 +2,6 @@ pipeline {
     agent any
 
     environment {
-//         AZURE_CLIENT_ID = credentials('AZURE_CLIENT_ID')
-//         AZURE_CLIENT_SECRET = credentials('AZURE_CLIENT_SECRET')
-//         AZURE_TENANT_ID = credentials('AZURE_TENANT_ID')
-//         AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')
         AZURE_CREDENTIALS = credentials('azure-service-principal')
     }
 
