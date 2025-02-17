@@ -16,7 +16,7 @@ variable "prefix" {
   default = "pg-cluster"
 }
 
-variable "pathVariable" {
+variable "PATH_VARIABLE" {
   default = "/var/lib/jenkins/workspace/Postgres Deploy/terraform"
 }
 
@@ -195,5 +195,5 @@ resource "azurerm_lb_rule" "pg_lb_rule" {
 }
 resource "local_file" "private_ips" {
   content  = join("\n", azurerm_network_interface.pg_nic[*].private_ip_address)
-  filename = "${var.pathVariable}/private_ips.txt"
+  filename = "${var.PATH_VARIABLE}/private_ips.txt"
 }
