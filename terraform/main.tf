@@ -1,6 +1,6 @@
-# provider "azurerm" {
-#   features {}
-# }
+provider "azurerm" {
+  features {}
+}
 
 terraform {
   required_providers {
