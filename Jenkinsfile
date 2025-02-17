@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/sid326/PostgresTerrformDeployment.git'
+                 git branch: 'main', credentialsId: 'git-ssh-key', url: 'https://github.com/sid326/PostgresTerrformDeployment.git'
             }
         }
 
